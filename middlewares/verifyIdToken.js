@@ -4,7 +4,7 @@ const verifyIdToken = async (req, res, next) => {
   try {
     const idToken = req.headers.authorization.split(' ')[1];
     let response = await auth.verifyIdToken(idToken);
-    console.log(req.headers);
+
     next();
   } catch (error) {
     console.log(error);
