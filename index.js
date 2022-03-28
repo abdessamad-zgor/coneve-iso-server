@@ -27,7 +27,7 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
 
 //Use Helmet to protect againt known vulnerabilities
 app.use(helmet());

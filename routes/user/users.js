@@ -9,7 +9,12 @@ router.get('/users/:uid', async (req, res) => {
     let uid = req.params.uid;
     let response = await db.collection('users').doc(uid).get();
     if (response.exists) {
-      res.status(200).json({ ...response.data(), uid });
+      res.status(200).json({
+        info: { ...response.data() },
+        uid,
+        idToken: res.locals.newIdToken,
+        refreshToken: res.locals.newRefreshToken,
+      });
     } else {
       throw new Error('user does not exist!');
     }
@@ -24,7 +29,11 @@ router.get('/users/:uid/address', async (req, res) => {
     let uid = req.params.uid;
     let response = await db.collection('users').doc(uid).collection('privateInfo').doc('address').get();
     if (response.exists) {
-      res.status(200).json({ ...response.data() });
+      res.status(200).json({
+        address: { ...response.data() },
+        idToken: res.locals.newIdToken,
+        refreshToken: res.locals.newRefreshToken,
+      });
     } else {
       throw new Error('address does not exist!');
     }
@@ -41,7 +50,20 @@ router.post('/users/:uid', async (req, res) => {
       .collection('users')
       .doc(uid)
       .set({ email: req.body.email, phone: req.body.phone, fullName: req.body.fullName });
-    res.status(200).json({ status: 'success' });
+    res
+      .status(200)
+      .json({ newUser: req.body, uid, idToken: res.locals.newIdToken, refreshToken: res.locals.newRefreshToken });
+  } catch (e) {
+    res.status(500).json({ status: 'error', message: e.message });
+  }
+});
+
+//update user information
+router.put('/users/:uid', async (req, res) => {
+  try {
+    let uid = req.params.uid;
+    await db.collection('users').doc(uid).set(req.body, { merge: true });
+    res.status(200).json({ idToken: res.locals.newIdToken, refreshToken: res.locals.newRefreshToken });
   } catch (e) {
     res.status(500).json({ status: 'error', message: e.message });
   }
@@ -52,7 +74,7 @@ router.post('/users/:uid/orders', async (req, res) => {
   try {
     let uid = req.params.uid;
     await db.collection('users').doc(uid).collection('orders').add(req.body);
-    res.status(200).json({ status: 'success' });
+    res.status(200).json({ idToken: res.locals.newIdToken, refreshToken: res.locals.newRefreshToken });
   } catch (e) {
     res.status(500).json({ status: 'error', message: e.message });
   }
@@ -68,7 +90,9 @@ router.get('/users/:uid/orders', async (req, res) => {
     }
     let orders = [];
     snapshot.docs.forEach((doc) => orders.push(doc.data()));
-    res.status(200).json({ status: 'sucess', orders });
+    res
+      .status(200)
+      .json({ status: 'sucess', orders, idToken: res.locals.newIdToken, refreshToken: res.locals.newRefreshToken });
   } catch (e) {
     res.status(500).json({ status: 'error', message: e.message });
   }
@@ -84,7 +108,9 @@ router.get('/users/:uid/coupons', async (req, res) => {
     }
     let coupons = [];
     snapshot.docs.forEach((doc) => coupons.push(doc.data()));
-    res.status(200).json({ status: 'sucess', coupons });
+    res
+      .status(200)
+      .json({ status: 'sucess', coupons, idToken: res.locals.newIdToken, refreshToken: res.locals.newRefreshToken });
   } catch (e) {
     res.status(200).json({ status: 'error', message: e.message });
   }
